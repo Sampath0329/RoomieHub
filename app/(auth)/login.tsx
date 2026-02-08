@@ -1,20 +1,25 @@
-import { View, Text, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-import { Input } from '../../src/components/ui/Input';  
+import React, { useState } from "react";
+import { View, Text, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import { Input } from "../../src/components/ui/Input";
+import { useAuth } from "../../src/hooks/useAuth";
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { signIn, forgotPassword, loading, error, message, clearAlerts } = useAuth();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const canSubmit = email.trim().length > 0 && password.length >= 6 && !loading;
 
   return (
-    <LinearGradient colors={['#faf5ff', '#f3e8ff', '#ffffff']} className="flex-1">
+    <LinearGradient colors={["#faf5ff", "#f3e8ff", "#ffffff"]} className="flex-1">
       <SafeAreaView className="flex-1">
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          className="flex-1"
-        >
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
           <ScrollView
-            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 32 }}
+            contentContainerStyle={{ flexGrow: 1, justifyContent: "center", paddingHorizontal: 32 }}
             keyboardShouldPersistTaps="handled"
           >
             <View className="items-center mb-12">
@@ -24,9 +29,7 @@ export default function LoginScreen() {
                 <View className="absolute top-16 left-14 w-24 h-24 bg-red-500 rounded-full opacity-90 shadow-2xl" />
               </View>
 
-              <Text className="text-5xl font-extrabold text-purple-600 tracking-tight">
-                RoomieHub
-              </Text>
+              <Text className="text-5xl font-extrabold text-purple-600 tracking-tight">RoomieHub</Text>
               <Text className="text-lg text-gray-600 mt-3 font-medium">
                 Welcome back! Login to continue
               </Text>
@@ -38,37 +41,65 @@ export default function LoginScreen() {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
+                value={email}
+                onChangeText={(t) => setEmail(t)}
+                onFocus={clearAlerts}
               />
+
               <Input
                 placeholder="Password"
                 secureTextEntry
                 autoCapitalize="none"
+                value={password}
+                onChangeText={(t) => setPassword(t)}
+                onFocus={clearAlerts}
               />
-              <TouchableOpacity className="items-center mt-2">
+
+              {error ? <Text className="text-red-500 font-medium text-center">{error}</Text> : null}
+              {message ? <Text className="text-green-600 font-medium text-center">{message}</Text> : null}
+
+              <TouchableOpacity
+                className="items-center mt-2"
+                onPress={async () => {
+                  clearAlerts();
+                  if (!email.trim()) return;
+                  await forgotPassword(email);
+                }}
+              >
                 <Text className="text-purple-600 font-medium text-base">
                   Forgot password?
                 </Text>
               </TouchableOpacity>
+
               <TouchableOpacity
-                onPress={() => console.log('Login pressed - add your logic here')}
-                className="rounded-full shadow-2xl overflow-hidden"
-              >
+                disabled={!canSubmit}
+                onPress={async () => {
+                  clearAlerts();
+                  await signIn(email, password);
+                }}
+                className={`rounded-full shadow-2xl overflow-hidden ${!canSubmit ? "opacity-60" : ""}`}>
+
                 <LinearGradient
-                  colors={['#06b6d4', '#8b5cf6']}
+                  colors={["#06b6d4", "#8b5cf6"]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   className="py-5 items-center"
                 >
-                  <Text className="text-white font-bold text-xl">Login</Text>
+                  <Text className="text-white font-bold text-xl">
+                    {loading ? "Loading..." : "Login"}
+                  </Text>
                 </LinearGradient>
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => router.push('/register')}
+                onPress={() => router.push("/(auth)/register")}
                 className="bg-white rounded-full py-5 items-center shadow-2xl border border-gray-200"
               >
-                <Text className="text-gray-800 font-bold text-xl">Register</Text>
+                <Text className="text-gray-800 font-bold text-xl">
+                  Register
+                </Text>
               </TouchableOpacity>
+              
             </View>
           </ScrollView>
         </KeyboardAvoidingView>

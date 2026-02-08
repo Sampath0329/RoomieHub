@@ -1,8 +1,12 @@
-import { Redirect } from 'expo-router';
+import { Redirect } from "expo-router";
+import { useAuth } from "../src/hooks/useAuth";
 
 export default function Index() {
-  // check the user alredy login
-  
-  // not a login user redirect welcome page 
-  return <Redirect href="/welcome" />;
+  // console.log("INDEX SCREEN RENDERED"); 
+
+  const { user, loading } = useAuth();
+
+  if (loading) return null;
+
+  return user ? <Redirect href="/(dashboard)/home" /> : <Redirect href="/welcome" />;
 }
