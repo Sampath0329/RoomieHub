@@ -1,11 +1,9 @@
 import React from "react";
 import { View, Text, SafeAreaView, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
 import { useAuth } from "../../src/hooks/useAuth";
 
 export default function HomeScreen() {
-  const router = useRouter();
   const { user, signOutUser, loading } = useAuth();
 
   return (
@@ -28,27 +26,33 @@ export default function HomeScreen() {
             <View className="mt-4 space-y-2">
               <Text className="text-gray-700">
                 👤 Name:{" "}
-                <Text className="font-bold">
-                  {user?.displayName || "No Name"}
-                </Text>
+                <Text className="font-bold">{user?.displayName || "No Name"}</Text>
               </Text>
 
               <Text className="text-gray-700">
                 📧 Email:{" "}
-                <Text className="font-bold">
-                  {user?.email || "No Email"}
-                </Text>
+                <Text className="font-bold">{user?.email || "No Email"}</Text>
               </Text>
 
               <Text className="text-gray-700">
                 🆔 UID:{" "}
-                <Text className="font-bold">
-                  {user?.uid?.slice(0, 10)}...
-                </Text>
+                <Text className="font-bold">{user?.uid?.slice(0, 10)}...</Text>
               </Text>
             </View>
           </View>
 
+          {/* ✅ Logout Button */}
+          <TouchableOpacity
+            disabled={loading}
+            onPress={signOutUser}
+            className={`mt-8 rounded-full py-4 items-center shadow-xl ${
+              loading ? "bg-gray-300" : "bg-purple-600"
+            }`}
+          >
+            <Text className="text-white font-bold text-lg">
+              {loading ? "Signing out..." : "Logout"}
+            </Text>
+          </TouchableOpacity>
 
           <Text className="text-center text-gray-500 mt-8">
             RoomieHub • Dashboard Sample
