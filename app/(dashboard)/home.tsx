@@ -2,21 +2,19 @@ import React, { useState } from "react";
 import { View, Text, SafeAreaView, TouchableOpacity, ScrollView } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+
 import { Input } from "../../src/components/ui/Input";
 import { useAuth } from "../../src/hooks/useAuth";
 import { useRoom } from "../../src/hooks/useRoom";
+import { useTheme } from "../../src/hooks/useTheme";
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { user, signOutUser, loading } = useAuth();
+  const { user } = useAuth();
+  const { theme } = useTheme();
 
-  const {
-    myRooms,
-    selectRoom,
-    createNewRoom,
-    sendJoinRequestByCode,
-    loadingRoom,
-  } = useRoom();
+  const { myRooms, selectRoom, createNewRoom, sendJoinRequestByCode, loadingRoom } = useRoom();
 
   const [roomName, setRoomName] = useState("");
   const [joinCode, setJoinCode] = useState("");
@@ -60,37 +58,41 @@ export default function HomeScreen() {
   }
 
   return (
-    <LinearGradient colors={["#faf5ff", "#f3e8ff", "#ffffff"]} className="flex-1">
+    <LinearGradient colors={theme.colors.gradient} className="flex-1">
       <SafeAreaView className="flex-1">
-        {/* Header */}
         <View className="px-6 pt-6 flex-row justify-between items-center">
           <View>
-            <Text className="text-gray-500 font-medium">Rooms</Text>
-            <Text className="text-2xl font-extrabold text-purple-700">
+            <Text style={{ color: theme.colors.subtext, fontWeight: "600" }}>Rooms</Text>
+            <Text style={{ color: theme.colors.primary, fontSize: 24, fontWeight: "800" }}>
               {user?.displayName || "Roomie"}
             </Text>
-            <Text className="text-gray-500 mt-1">{user?.email}</Text>
+            <Text style={{ color: theme.colors.subtext, marginTop: 4 }}>{user?.email}</Text>
           </View>
 
           <TouchableOpacity
-            disabled={loading}
-            onPress={signOutUser}
-            className={`px-4 py-2 rounded-full bg-red-500 ${loading ? "opacity-60" : ""}`}
+            onPress={() => router.push("/(dashboard)/profile")}
+            className="w-11 h-11 rounded-full items-center justify-center"
+            style={{
+              backgroundColor: theme.colors.card,
+              borderColor: theme.colors.border,
+              borderWidth: 1,
+            }}
           >
-            <Text className="text-white font-bold">Logout</Text>
+            <Ionicons name="settings-outline" size={22} color={theme.colors.text} />
           </TouchableOpacity>
         </View>
 
-        {/* Alerts */}
         <View className="px-6 mt-3">
-          {localErr ? <Text className="text-red-600 font-semibold">{localErr}</Text> : null}
-          {localMsg ? <Text className="text-green-600 font-semibold">{localMsg}</Text> : null}
+          {localErr ? <Text style={{ color: "#EF4444", fontWeight: "700" }}>{localErr}</Text> : null}
+          {localMsg ? <Text style={{ color: "#22C55E", fontWeight: "700" }}>{localMsg}</Text> : null}
         </View>
 
         <ScrollView className="px-6 mt-4" contentContainerStyle={{ paddingBottom: 40 }}>
-          {/* Create Room */}
-          <View className="bg-white p-5 rounded-3xl shadow-lg border border-gray-100 mb-4">
-            <Text className="text-gray-800 font-extrabold text-lg">Create a Room</Text>
+          <View
+            className="p-5 rounded-3xl shadow-lg mb-4"
+            style={{ backgroundColor: theme.colors.card, borderColor: theme.colors.border, borderWidth: 1 }}
+          >
+            <Text style={{ color: theme.colors.text, fontWeight: "800", fontSize: 18 }}>Create a Room</Text>
 
             <View className="mt-4">
               <Input
@@ -113,12 +115,12 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Join Room */}
-          <View className="bg-white p-5 rounded-3xl shadow-lg border border-gray-100 mb-6">
-            <Text className="text-gray-800 font-extrabold text-lg">Join a Room</Text>
-            <Text className="text-gray-500 mt-1">
-              request to join.
-            </Text>
+          <View
+            className="p-5 rounded-3xl shadow-lg mb-6"
+            style={{ backgroundColor: theme.colors.card, borderColor: theme.colors.border, borderWidth: 1 }}
+          >
+            <Text style={{ color: theme.colors.text, fontWeight: "800", fontSize: 18 }}>Join a Room</Text>
+            <Text style={{ color: theme.colors.subtext, marginTop: 4 }}>request to join.</Text>
 
             <View className="mt-4">
               <Input
@@ -142,13 +144,17 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* My Rooms List */}
-          <Text className="text-gray-800 font-extrabold text-lg mb-3">My Rooms</Text>
+          <Text style={{ color: theme.colors.text, fontWeight: "800", fontSize: 18, marginBottom: 12 }}>
+            My Rooms
+          </Text>
 
           {myRooms.length === 0 ? (
-            <View className="bg-white p-6 rounded-3xl shadow border border-gray-100">
-              <Text className="text-gray-700 font-bold">No rooms yet</Text>
-              <Text className="text-gray-500 mt-1">Room List.</Text>
+            <View
+              className="p-6 rounded-3xl shadow"
+              style={{ backgroundColor: theme.colors.card, borderColor: theme.colors.border, borderWidth: 1 }}
+            >
+              <Text style={{ color: theme.colors.text, fontWeight: "800" }}>No rooms yet</Text>
+              <Text style={{ color: theme.colors.subtext, marginTop: 4 }}>Room List.</Text>
             </View>
           ) : (
             myRooms.map((r) => (
@@ -156,18 +162,16 @@ export default function HomeScreen() {
                 key={r.id}
                 onPress={async () => {
                   await selectRoom(r.id);
-                  router.push({
-                    pathname: "/(dashboard)/room/[id]",
-                    params: { id: r.id },
-                  });
+                  router.push({ pathname: "/(dashboard)/room/[id]", params: { id: r.id } });
                 }}
-                className="bg-white p-5 rounded-3xl shadow-lg border border-gray-100 mb-3"
+                className="p-5 rounded-3xl shadow-lg mb-3"
+                style={{ backgroundColor: theme.colors.card, borderColor: theme.colors.border, borderWidth: 1 }}
               >
-                <Text className="text-gray-800 font-extrabold text-lg">{r.name}</Text>
-                <Text className="text-gray-500 mt-1">
-                  Code: <Text className="font-bold text-purple-700">{r.code}</Text>
+                <Text style={{ color: theme.colors.text, fontWeight: "800", fontSize: 18 }}>{r.name}</Text>
+                <Text style={{ color: theme.colors.subtext, marginTop: 4 }}>
+                  Code: <Text style={{ color: theme.colors.primary, fontWeight: "800" }}>{r.code}</Text>
                 </Text>
-                <Text className="text-gray-400 mt-1 text-sm">Tap to open</Text>
+                <Text style={{ color: theme.colors.subtext, marginTop: 4, fontSize: 12 }}>Tap to open</Text>
               </TouchableOpacity>
             ))
           )}
