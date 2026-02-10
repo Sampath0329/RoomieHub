@@ -1,33 +1,45 @@
-import { TouchableOpacity, Text, TouchableOpacityProps } from 'react-native';
+import React from "react";
+import { TouchableOpacity, Text, TouchableOpacityProps } from "react-native";
+import { useTheme } from "../../hooks/useTheme";
 
 interface ButtonProps extends TouchableOpacityProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary';
-  className?: string;          
-  textClassName?: string;      
+  variant?: "primary" | "secondary" | "danger";
+  className?: string;
 }
 
 export const Button = ({
   title,
   onPress,
-  variant = 'primary',
-  className = '',
-  textClassName = '',
+  variant = "primary",
+  className = "",
+  style,
   ...rest
 }: ButtonProps) => {
-  const bgStyle = variant === 'primary' ? 'bg-blue-600' : 'bg-transparent border border-blue-600';
-  const textStyle = variant === 'primary' ? 'text-white' : 'text-blue-600';
+  const { theme } = useTheme();
+
+  const bg =
+    variant === "primary"
+      ? theme.colors.primary
+      : variant === "danger"
+      ? theme.colors.danger
+      : "transparent";
+
+  const borderColor = variant === "secondary" ? theme.colors.border : "transparent";
+  const textColor = variant === "secondary" ? theme.colors.text : "#fff";
 
   return (
     <TouchableOpacity
       onPress={onPress}
-      className={`${bgStyle} p-4 rounded-2xl items-center shadow-sm active:opacity-80 ${className}`}
-      {...rest} // native props (disabled, etc) pass 
+      className={`p-4 rounded-2xl items-center ${className}`}
+      style={[
+        { backgroundColor: bg, borderWidth: variant === "secondary" ? 1 : 0, borderColor },
+        style,
+      ]}
+      {...rest}
     >
-      <Text className={`${textStyle} font-bold text-lg ${textClassName}`}>
-        {title}
-      </Text>
+      <Text style={{ color: textColor, fontWeight: "800", fontSize: 16 }}>{title}</Text>
     </TouchableOpacity>
   );
 };

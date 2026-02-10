@@ -5,6 +5,7 @@ import {
   orderBy,
   query,
   serverTimestamp,
+  type Timestamp,
 } from "firebase/firestore";
 import { db } from "./firebase";
 
@@ -13,7 +14,7 @@ export type Announcement = {
   text: string;
   createdByUid: string;
   createdByName: string;
-  createdAt?: any;
+  createdAt?: Timestamp | null;
 };
 
 export function listenAnnouncements(roomId: string, cb: (list: Announcement[]) => void) {
