@@ -15,7 +15,6 @@ const firebaseConfig = {
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-// ✅ Always try to init with persistence first
 let authInstance;
 try {
   const getReactNativePersistence = (Auth as any).getReactNativePersistence;
@@ -23,7 +22,6 @@ try {
     persistence: getReactNativePersistence(AsyncStorage),
   });
 } catch (e) {
-  // If already initialized, fall back to existing auth
   authInstance = getAuth(app);
 }
 

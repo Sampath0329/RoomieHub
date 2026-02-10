@@ -1,18 +1,62 @@
-import React, { useState } from "react";
-import { View, Text, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  View,
+  Text,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { Input } from "../../src/components/ui/Input";
 import { useAuth } from "../../src/hooks/useAuth";
 
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
+import { makeRedirectUri } from "expo-auth-session";
+
+WebBrowser.maybeCompleteAuthSession();
+
 export default function LoginScreen() {
   const router = useRouter();
-  const { signIn, forgotPassword, loading, error, message, clearAlerts } = useAuth();
+  const { signIn, forgotPassword, googleSignIn, loading, error, message, clearAlerts } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const canSubmit = email.trim().length > 0 && password.length >= 6 && !loading;
+
+  const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+
+  const redirectUri = useMemo(
+    () =>
+      makeRedirectUri({
+        scheme: "roomiehub",
+      }),
+    []
+  );
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    clientId: webClientId,         
+    androidClientId: webClientId,  
+    redirectUri,
+    responseType: "id_token",
+    scopes: ["openid", "profile", "email"],
+    extraParams: {
+      prompt: "select_account",
+    },
+  });
+
+  useEffect(() => {
+    if (response?.type !== "success") return;
+
+    const idToken = (response as any)?.params?.id_token as string | undefined;
+    if (!idToken) return;
+
+    googleSignIn(idToken);
+  }, [response, googleSignIn]);
 
   return (
     <LinearGradient colors={["#faf5ff", "#f3e8ff", "#ffffff"]} className="flex-1">
@@ -30,9 +74,7 @@ export default function LoginScreen() {
               </View>
 
               <Text className="text-5xl font-extrabold text-purple-600 tracking-tight">RoomieHub</Text>
-              <Text className="text-lg text-gray-600 mt-3 font-medium">
-                Welcome back! Login to continue
-              </Text>
+              <Text className="text-lg text-gray-600 mt-3 font-medium">Welcome back! Login to continue</Text>
             </View>
 
             <View className="space-y-6">
@@ -42,7 +84,7 @@ export default function LoginScreen() {
                 autoCapitalize="none"
                 autoCorrect={false}
                 value={email}
-                onChangeText={(t) => setEmail(t)}
+                onChangeText={setEmail}
                 onFocus={clearAlerts}
               />
 
@@ -51,7 +93,7 @@ export default function LoginScreen() {
                 secureTextEntry
                 autoCapitalize="none"
                 value={password}
-                onChangeText={(t) => setPassword(t)}
+                onChangeText={setPassword}
                 onFocus={clearAlerts}
               />
 
@@ -66,40 +108,51 @@ export default function LoginScreen() {
                   await forgotPassword(email);
                 }}
               >
-                <Text className="text-purple-600 font-medium text-base">
-                  Forgot password?
-                </Text>
+                <Text className="text-purple-600 font-medium text-base">Forgot password?</Text>
               </TouchableOpacity>
 
+              {/* Email/Password */}
               <TouchableOpacity
                 disabled={!canSubmit}
                 onPress={async () => {
                   clearAlerts();
                   await signIn(email, password);
                 }}
-                className={`rounded-full shadow-2xl overflow-hidden ${!canSubmit ? "opacity-60" : ""}`}>
-
+                className={`rounded-full shadow-2xl overflow-hidden ${!canSubmit ? "opacity-60" : ""}`}
+              >
                 <LinearGradient
                   colors={["#06b6d4", "#8b5cf6"]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   className="py-5 items-center"
                 >
-                  <Text className="text-white font-bold text-xl">
-                    {loading ? "Loading..." : "Login"}
-                  </Text>
+                  <Text className="text-white font-bold text-xl">{loading ? "Loading..." : "Login"}</Text>
                 </LinearGradient>
               </TouchableOpacity>
 
+              {/* Google */}
+              <TouchableOpacity
+                disabled={loading || !request}
+                onPress={async () => {
+                  clearAlerts();
+                  await promptAsync({ useProxy: true } as any);
+                }}
+                className={`bg-white rounded-full py-5 items-center shadow-2xl border border-gray-200 ${
+                  loading || !request ? "opacity-60" : ""
+                }`}
+              >
+                <Text className="text-gray-800 font-bold text-xl">
+                  {loading ? "Please wait..." : "Continue with Google"}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Register */}
               <TouchableOpacity
                 onPress={() => router.push("/(auth)/register")}
                 className="bg-white rounded-full py-5 items-center shadow-2xl border border-gray-200"
               >
-                <Text className="text-gray-800 font-bold text-xl">
-                  Register
-                </Text>
+                <Text className="text-gray-800 font-bold text-xl">Register</Text>
               </TouchableOpacity>
-              
             </View>
           </ScrollView>
         </KeyboardAvoidingView>

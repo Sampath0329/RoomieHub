@@ -1,7 +1,13 @@
 import React, { createContext, useEffect, useMemo, useState } from "react";
 import { User, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../lib/firebase";
-import { loginWithEmail, logout, registerWithEmail, resetPassword } from "../lib/auth.api";
+import {
+  loginWithEmail,
+  logout,
+  registerWithEmail,
+  resetPassword,
+  loginWithGoogleIdToken,
+} from "../lib/auth.api";
 
 type AuthContextType = {
   user: User | null;
@@ -9,8 +15,12 @@ type AuthContextType = {
   error: string | null;
   message: string | null;
   clearAlerts: () => void;
+
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (fullName: string, email: string, password: string) => Promise<void>;
+
+  googleSignIn: (idToken: string) => Promise<void>;
+
   signOutUser: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
 };
@@ -31,8 +41,12 @@ function friendlyError(e: any) {
       return "Email or password is incorrect.";
     case "auth/user-not-found":
       return "No account found for this email.";
+    case "auth/account-exists-with-different-credential":
+      return "This email is already used with a different sign-in method.";
+    case "auth/operation-not-allowed":
+      return "Google Sign-In is not enabled in Firebase.";
     default:
-      return "An error occurred. Please try again.";
+      return e?.message || "An error occurred. Please try again.";
   }
 }
 
@@ -81,6 +95,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setMessage(null);
           setLoading(true);
           await registerWithEmail(email, password, fullName);
+        } catch (e) {
+          setError(friendlyError(e));
+        } finally {
+          setLoading(false);
+        }
+      },
+
+      googleSignIn: async (idToken: string) => {
+        try {
+          setError(null);
+          setMessage(null);
+          setLoading(true);
+          await loginWithGoogleIdToken(idToken);
         } catch (e) {
           setError(friendlyError(e));
         } finally {

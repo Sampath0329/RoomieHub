@@ -123,7 +123,6 @@ export default function RegisterScreen() {
                   clearAlerts();
                   if (!canSubmit) return;
                   await signUp(fullName, email, password);
-                  //useEffect will redirect when user register
                 }}
                 className={`rounded-full shadow-2xl overflow-hidden ${
                   !canSubmit ? "opacity-60" : ""

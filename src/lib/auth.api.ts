@@ -5,6 +5,8 @@ import {
   updateProfile,
   sendPasswordResetEmail,
   User,
+  GoogleAuthProvider,
+  signInWithCredential,
 } from "firebase/auth";
 import { auth } from "./firebase";
 
@@ -33,4 +35,9 @@ export async function logout(): Promise<void> {
 
 export async function resetPassword(email: string): Promise<void> {
   await sendPasswordResetEmail(auth, email.trim());
+}
+
+export async function loginWithGoogleIdToken(idToken: string): Promise<void> {
+  const credential = GoogleAuthProvider.credential(idToken);
+  await signInWithCredential(auth, credential);
 }

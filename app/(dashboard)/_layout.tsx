@@ -6,7 +6,6 @@ export default function DashboardLayout() {
 
   if (loading) return null;
 
-  //not logged => back to login
   if (!user) {
     return <Redirect href="/(auth)/login" />;
   }

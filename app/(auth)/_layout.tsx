@@ -6,7 +6,6 @@ export default function AuthLayout() {
 
   if (loading) return null;
 
-  //already logged in => kick out from auth screens
   if (user) {
     return <Redirect href="/(dashboard)/home" />;
   }
